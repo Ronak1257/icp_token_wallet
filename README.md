@@ -1,61 +1,92 @@
-# `icp_token_wallet`
+# `ICP Token Wallet Backend`
 
-Welcome to your new `icp_token_wallet` project and to the Internet Computer development community. By default, creating a new project adds this README and some template files to your project directory. You can edit these template files to customize your project and to include your own code to speed up the development cycle.
+This project is a basic implementation of a token wallet system on the Internet Computer using Rust and Candid. It allows users to send and receive tokens, as well as check their balance.
 
-To get started, you might want to explore the project directory structure and the default configuration file. Working with this project in your development environment will not affect any production deployment or identity tokens.
+## Features
+* Initialize Wallet: The contract initializes with the deployer as the owner and credits the owner's wallet with an initial balance of 1000 tokens.
+* Send Tokens: Users can send tokens to other users if they have sufficient balance.
+* Receive Tokens: Users can receive tokens from other users or external sources.
+Get Balance: Users can query the current balance in their wallet.
 
-To learn more before you start working with `icp_token_wallet`, see the following documentation available online:
+## Prerequisites
+To build and deploy this project, ensure you have the following tools installed:
+* DFX
+* Rust with wasm32-unknown-unknown target
+  * Install the target: rustup target add wasm32-unknown-unknown
+* Cargo
 
-- [Quick Start](https://internetcomputer.org/docs/current/developer-docs/setup/deploy-locally)
-- [SDK Developer Tools](https://internetcomputer.org/docs/current/developer-docs/setup/install)
-- [Rust Canister Development Guide](https://internetcomputer.org/docs/current/developer-docs/backend/rust/)
-- [ic-cdk](https://docs.rs/ic-cdk)
-- [ic-cdk-macros](https://docs.rs/ic-cdk-macros)
-- [Candid Introduction](https://internetcomputer.org/docs/current/developer-docs/backend/candid/)
+## Project Structure
+```
+.
+├── src
+│   ├── icp_token_wallet_backend_backend
+│   │   ├── src
+│   │   │   ├── lib.rs                   # Contains the backend logic for token wallet
+│   │   ├── Cargo.toml                   # Rust project configuration file
+│   │   ├── icp_token_wallet_backend.did # Candid interface file
+├── dfx.json                              # DFX project configuration
+├── Cargo.lock                            # Lockfile for dependencies
+├── README.md                             # This readme file
 
-If you want to start working on your project right away, you might want to try the following commands:
-
-```bash
-cd icp_token_wallet/
-dfx help
-dfx canister --help
 ```
 
-## Running the project locally
+## How It Works
+* State Management: The contract maintains a global mutable state containing user wallets. Each wallet stores the user's balance.
+* State Initialization: Upon initialization, the deployer's wallet is created and initialized with 1000 tokens.
+* Token Transfer: Users can transfer tokens to other users if their wallet exists and they have sufficient balance.
+* Receiving Tokens: Users can add tokens to their wallet using the receive_tokens function.
+* Query Balance: Users can query the balance of their wallet at any time.
 
-If you want to test your project locally, you can use the following commands:
-
+## Setup and Usage
+### 1. Clone the repository
 ```bash
-# Starts the replica, running in the background
-dfx start --background
+git clone https://github.com/yourusername/icp_token_wallet_backend.git
+cd icp_token_wallet_backend
+```
+### 2. Build the canister
+```
+dfx build
+# if you encounter error try : cargo build --release
+```
+This will compile the Rust code into WebAssembly (Wasm) and prepare it for deployment on the Internet Computer.
 
-# Deploys your canisters to the replica and generates your candid interface
+### 3. Deploy the Canister
+Deploy the canister to a local Internet Computer network:
+```
+dfx start --background
 dfx deploy
 ```
-
-Once the job completes, your application will be available at `http://localhost:4943?canisterId={asset_canister_id}`.
-
-If you have made changes to your backend canister, you can generate a new candid interface with
-
+### 4. Interact with the Canister
+After deployment, you can interact with the deployed canister using DFX commands:
 ```bash
-npm run generate
+* Check Balance :
+dfx canister call icp_token_wallet_backend get_balance
+
+* Send Tokens:
+dfx canister call icp_token_wallet_backend send_tokens '(100, "recipient_principal_id")'
+
+* Receive Tokens:
+dfx canister call icp_token_wallet_backend receive_tokens '(100)'
+```
+| Note: Replace "recipient_principal_id" with an actual principal ID (you can use dfx identity get-principal to generate one).
+
+### 5. Stop the Local DFX Network
+Once you're done testing, stop the local DFX network:
+```bash
+dfx stop
 ```
 
-at any time. This is recommended before starting the frontend development server, and will be run automatically any time you run `dfx deploy`.
 
-If you are making frontend changes, you can start a development server with
+## Sample Output Imaages :
+### 1. Get Balance Before Transaction :
+![get_balance_before_transaction](https://github.com/user-attachments/assets/c9b5500a-d83c-41cd-aaaa-218f7595dc5a)
 
-```bash
-npm start
-```
+### 2. Send Token :
+![send_token](https://github.com/user-attachments/assets/87d3f5da-a96b-456e-bee6-411f7372487a)
 
-Which will start a server at `http://localhost:8080`, proxying API requests to the replica at port 4943.
+### 3. Receive Token :
+![receive_token](https://github.com/user-attachments/assets/9ca7cbf6-b885-4cee-bce3-bf6c6c7563f1)
 
-### Note on frontend environment variables
+### 4. Get Balance After Trancation :
+![get_balance_after_transaction](https://github.com/user-attachments/assets/cc1c7d26-6329-4022-a497-b2071534d245)
 
-If you are hosting frontend code somewhere without using DFX, you may need to make one of the following adjustments to ensure your project does not fetch the root key in production:
-
-- set`DFX_NETWORK` to `ic` if you are using Webpack
-- use your own preferred method to replace `process.env.DFX_NETWORK` in the autogenerated declarations
-  - Setting `canisters -> {asset_canister_id} -> declarations -> env_override to a string` in `dfx.json` will replace `process.env.DFX_NETWORK` with the string in the autogenerated declarations
-- Write your own `createActor` constructor
